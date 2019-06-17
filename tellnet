@@ -1,1 +1,19 @@
 #!/bin/bash
+
+hosts=( "$@" )
+
+for index in "${!hosts[@]}"
+do
+	IFS=':' read -ra explode <<< "${hosts[index]}"
+	host=${explode[0]}
+	IFS=',' read -ra ports <<< "${explode[1]}"
+	for port in "${ports[@]}"
+	do
+	  status=`sleep 2 | telnet $host $port 2>/dev/null | grep -v "Connection refused" | grep "Connected to" | grep -v grep | wc -l`
+	  if [ $status -eq 1 ] ; then
+	  	echo "$(date +"%b %d %H:%M %Y") - ${host}:${port} [OK]"
+	  else 
+	  	echo "$(date +"%b %d %H:%M %Y") - ${host}:${port} [FAILED]"
+	  fi
+	done
+done
